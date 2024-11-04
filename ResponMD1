@@ -1,0 +1,243 @@
+class StatNode {
+    String statName;
+    int value;
+    StatNode next;
+
+    public StatNode(String statName, int value) {
+        this.statName = statName;
+        this.value = value;
+        this.next = null;
+    }
+}
+
+class JobNode {
+    String jobName;
+    String attackSkill;
+    String skillDescription;
+    int attackPower;
+    StatNode statHead;
+    JobNode next;
+
+    public JobNode(String jobName, String attackSkill, String skillDescription) {
+        this.jobName = jobName;
+        this.attackSkill = attackSkill;
+        this.skillDescription = skillDescription;
+        this.attackPower = 0;
+        this.statHead = null;
+        this.next = null;
+    }
+
+    public void addStat(String statName, int value) {
+        StatNode newStat = new StatNode(statName, value);
+        if (statHead == null) {
+            statHead = newStat;
+        } else {
+            StatNode current = statHead;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newStat;
+        }
+    }
+
+    public void calculateAttackPower() {
+        attackPower = 0;
+        StatNode current = statHead;
+        while (current != null) {
+            attackPower += current.value;
+            current = current.next;
+        }
+    }
+
+    public void displayStats() {
+        StatNode current = statHead;
+        while (current != null) {
+            System.out.println(current.statName + ": " + current.value);
+            current = current.next;
+        }
+    }
+}
+
+class JobLinkedList {
+    private JobNode head;
+
+    public JobLinkedList() {
+        head = null;
+    }
+
+    public void addJob(String jobName, String attackSkill, String skillDescription) {
+        JobNode newJob = new JobNode(jobName, attackSkill, skillDescription);
+        if (head == null) {
+            head = newJob;
+        } else {
+            JobNode current = head;
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newJob;
+        }
+    }
+
+    public void addStatToJob(String jobName, String statName, int value) {
+        JobNode job = findJob(jobName);
+        if (job != null) {
+            job.addStat(statName, value);
+        } else {
+            System.out.println("Job tidak ditemukan: " + jobName);
+        }
+    }
+
+    public JobNode findJob(String jobName) {
+        JobNode current = head;
+        while (current != null) {
+            if (current.jobName.equals(jobName)) {
+                return current;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+
+    public void fusionJob(String newJobName, String attackSkill, String skillDescription, String job1Name, String job2Name) {
+        JobNode job1 = findJob(job1Name);
+        JobNode job2 = findJob(job2Name);
+
+        if (job1 == null || job2 == null) {
+            System.out.println("Salah satu atau kedua job tidak ditemukan.");
+            return;
+        }
+
+        JobNode newJob = new JobNode(newJobName, attackSkill, skillDescription);
+
+        StatNode statCurrent1 = job1.statHead;
+        while (statCurrent1 != null) {
+            StatNode statCurrent2 = job2.statHead;
+            boolean found = false;
+            while (statCurrent2 != null) {
+                if (statCurrent1.statName.equals(statCurrent2.statName)) {
+                    int combinedValue = (statCurrent1.value + statCurrent2.value) * 75 / 100;
+                    newJob.addStat(statCurrent1.statName, combinedValue);
+                    found = true;
+                    break;
+                }
+                statCurrent2 = statCurrent2.next;
+            }
+            if (!found) {
+                newJob.addStat(statCurrent1.statName, statCurrent1.value);
+            }
+            statCurrent1 = statCurrent1.next;
+        }
+
+        StatNode statCurrent2 = job2.statHead;
+        while (statCurrent2 != null) {
+            StatNode statCurrent1Check = job1.statHead;
+            boolean found = false;
+            while (statCurrent1Check != null) {
+                if (statCurrent2.statName.equals(statCurrent1Check.statName)) {
+                    found = true;
+                    break;
+                }
+                statCurrent1Check = statCurrent1Check.next;
+            }
+            if (!found) {
+                newJob.addStat(statCurrent2.statName, statCurrent2.value);
+            }
+            statCurrent2 = statCurrent2.next;
+        }
+
+        newJob.calculateAttackPower();
+        addJob(newJobName, attackSkill, skillDescription);
+        JobNode existingJob = findJob(newJobName);
+        if (existingJob != null) {
+            existingJob.statHead = newJob.statHead;
+        }
+    }
+
+    public void displayJobs() {
+        JobNode current = head;
+        while (current != null) {
+            System.out.println("Nama Job: " + current.jobName);
+            System.out.println("Attack Skill: " + current.attackSkill);
+            System.out.println("Descripsi Skill: " + current.skillDescription);
+            System.out.println("Type Job: " + (current.statHead != null ? "Combined Job" : "Basic Job"));
+            System.out.println("Attack Power: " + current.attackPower);
+            System.out.println("Statistik Dasar Job:");
+
+            StatNode statCurrent = current.statHead;
+            while (statCurrent != null) {
+                System.out.println(statCurrent.statName + ": " + statCurrent.value);
+                statCurrent = statCurrent.next;
+            }
+            System.out.println();
+            current = current.next;
+        }
+    }
+
+    public void calculateAllAttackPowers() {
+        JobNode current = head;
+        while (current != null) {
+            current.calculateAttackPower();
+            current = current.next;
+        }
+    }
+}
+
+public class ResponMD1 {
+    public static void main(String[] args) {
+        JobLinkedList jobList = new JobLinkedList();
+
+        jobList.addJob("Knight", "Shield Bash Shockwave", "Menghancurkan formasi musuh melalui gelombang kejut.");
+        jobList.addJob("Support", "Retribution Area", "Memantulkan damage musuh sekaligus menyembuhkan rekan tim.");
+        
+        jobList.addStatToJob("Knight", "Strength", 5);
+        jobList.addStatToJob("Knight", "Agility", 3);
+        jobList.addStatToJob("Knight", "Vitality", 2);
+        jobList.addStatToJob("Knight", "Intelligence", 2);
+        jobList.addStatToJob("Knight", "Dexterity", 3);
+        jobList.addStatToJob("Knight", "Luck", 2);
+        jobList.addStatToJob("Knight", "Aura", 1);
+
+        jobList.addStatToJob("Support", "Strength", 3);
+        jobList.addStatToJob("Support", "Agility", 2);
+        jobList.addStatToJob("Support", "Vitality", 5);
+        jobList.addStatToJob("Support", "Intelligence", 3);
+        jobList.addStatToJob("Support", "Dexterity", 2);
+        jobList.addStatToJob("Support", "Luck", 2);
+        jobList.addStatToJob("Support", "Divinity", 1);
+
+        jobList.fusionJob("Paladin", "Holy Nova", "Membuat ledakan cahaya yang menghancurkan formasi musuh.", "Knight", "Support");
+
+        jobList.addJob("Mage", "Elemental Apocalypse", "Menciptakan badai yang menghujani area yang sangat luas.");
+        jobList.addJob("Archer", "Piercing Storm", "Melepaskan hujan anak panah kepada musuh.");
+        jobList.addJob("Thief", "Shadow Strike", "Menyerang musuh secara diam-diam dengan kekuatan mendalam.");
+
+        jobList.addStatToJob("Mage", "Strength", 2);
+        jobList.addStatToJob("Mage", "Agility", 2);
+        jobList.addStatToJob("Mage", "Vitality", 2);
+        jobList.addStatToJob("Mage", "Intelligence", 6);
+        jobList.addStatToJob("Mage", "Dexterity", 2);
+        jobList.addStatToJob("Mage", "Luck", 3);
+        jobList.addStatToJob("Mage", "Magic", 1);
+
+        jobList.addStatToJob("Archer", "Strength", 2);
+        jobList.addStatToJob("Archer", "Agility", 2);
+        jobList.addStatToJob("Archer", "Vitality", 1);
+        jobList.addStatToJob("Archer", "Intelligence", 4);
+        jobList.addStatToJob("Archer", "Dexterity", 4);
+        jobList.addStatToJob("Archer", "Luck", 4);
+        jobList.addStatToJob("Archer", "Perception", 1);
+
+        jobList.addStatToJob("Thief", "Strength", 2);
+        jobList.addStatToJob("Thief", "Agility", 4);
+        jobList.addStatToJob("Thief", "Vitality", 1);
+        jobList.addStatToJob("Thief", "Intelligence", 4);
+        jobList.addStatToJob("Thief", "Dexterity", 4);
+        jobList.addStatToJob("Thief", "Luck", 2);
+        jobList.addStatToJob("Thief", "Sense", 1);
+
+        jobList.fusionJob("Summoner", "Chimera Onslaught", "Memanggil Chimera untuk menyerang musuh", "Mage", "Support");
+
+        jobList.calculateAllAttackPowers();
+        jobList.displayJobs();
+    }
+}
